@@ -10,10 +10,10 @@ public class LongLat {
     public static final double MAX_LATITUDE = 55.946233;
 
     /**
-     * Constructor for LongLat class
+     * Constructor for LongLat class.
      *
-     * @param longitude longitude of LongLat object
-     * @param latitude latitude of LongLat object
+     * @param longitude longitude of theLongLat object.
+     * @param latitude latitude of the LongLat object.
      */
     public LongLat(double longitude, double latitude){
         this.longitude = longitude;
@@ -21,9 +21,9 @@ public class LongLat {
     }
 
     /**
-     * Method to check whether the drone is inside the specified area
+     * Method to check whether the drone is inside the confinement area.
      *
-     * @return boolean True if the drone is in the area. False otherwise
+     * @return boolean True if the drone is in the area. False otherwise.
      */
     public boolean isConfined() {
         return !(longitude <= MIN_LONGITUDE) && !(longitude >= MAX_LONGITUDE)
@@ -31,22 +31,23 @@ public class LongLat {
     }
 
     /**
-     * Method to calculate the distance between the current position of drone and another position
+     * Method to calculate the distance between the current position of the drone and another specified position.
      *
-     * @param longLatObject the second LongLat object which contain the another position
-     * @return the distance between both positions
+     * @param longLatObject the second LongLat object which contain the another position.
+     * @return the distance between both position in degree.
      */
     public double distanceTo(LongLat longLatObject) {
         double secondLongitude = longLatObject.longitude;
         double secondLatitude = longLatObject.latitude;
+        // Calculate the distance using Pythagoras Theorem formula
         return Math.sqrt(Math.pow((longitude - secondLongitude), 2) + Math.pow((latitude - secondLatitude), 2));
     }
 
     /**
-     * Method to check whether the current position of drone is close to another position
+     * Method to check whether the current position of the drone is close to another specified position.
      *
-     * @param longLatObject the second LongLat object which contain the another position
-     * @return boolean True if the distance between both positions is close. False otherwise
+     * @param longLatObject the second LongLat object which contain the another position.
+     * @return boolean True if the distance between both positions is close (less than 0.00015 degree). False otherwise.
      */
     public boolean closeTo(LongLat longLatObject) {
         double distance = distanceTo(longLatObject);
@@ -55,14 +56,15 @@ public class LongLat {
 
     /**
      * Method to calculate the next position of the drone as the drone make a single move
-     * to a direction of any angle
+     * to a direction of any angle (multiplies of 10).
      *
-     * @param angle the angle at which the drone move
-     * @return new LongLat object which contains the new position of the drone
+     * @param angle the angle at which the drone move.
+     * @return new LongLat object which contains the new position of the drone.
      */
     public LongLat nextPosition(int angle) {
         double newLongitude;
         double newLatitude;
+        // In the case where the drone is hovering, junk value of -999 is given.
         if (angle == -999) {
             newLongitude = longitude;
             newLatitude = latitude;

@@ -6,11 +6,7 @@ package uk.ac.ed.inf;
  */
 public class App 
 {
-    public static void main( String[] args )
-    {
-        Menus menus = new Menus("localhost", "9898");
-        int totalCost = menus.getDeliveryCost(
-                "Ham and mozzarella Italian roll"
-        );
+    public static void main( String[] args ) {
+        System.out.println("Hello World!");
     }
 }
