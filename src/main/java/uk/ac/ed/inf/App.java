@@ -1,12 +1,15 @@
 package uk.ac.ed.inf;
 
-/**
- * Hello world!
- *
- */
-public class App 
-{
-    public static void main( String[] args ) {
-        System.out.println("Hello World!");
+public class App {
+
+    public static void main(String[] args) {
+        String day = args[0];
+        String month = args[1];
+        String year = args[2];
+        String serverPort = args[3];
+        String databasePort = args[4];
+
+
+
     }
 }
