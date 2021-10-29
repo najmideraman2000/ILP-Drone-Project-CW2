@@ -1,30 +1,26 @@
 package uk.ac.ed.inf;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Database {
-    private String machineName = new String("localhost");
-    private String databasePort = new String("80");
+    private String machineName;
+    private String databasePort;
 
     public Database(String machineName, String databasePort) {
         this.machineName = machineName;
         this.databasePort = databasePort;
     }
 
-    // Initialise new HttpClient and request menus.json from the web server
-    String jdbcString = "jdbc:derby://" + machineName + ":" + databasePort + "/derbyDB";
-
-    public void fromDatabase() {
+    public List[] allList(String day, String month, String year) {
+        String jdbcString = "jdbc:derby://" + machineName + ":" + databasePort + "/derbyDB";
         try {
             Connection conn = DriverManager.getConnection(jdbcString);
-            Statement statement = conn.createStatement();
 
-            final String allQuery = "select * from orders where deliveryDate=(2022-04-11)";
+            final String allQuery = "select * from orders where deliveryDate=(?)";
             PreparedStatement psAllQuery = conn.prepareStatement(allQuery);
+            psAllQuery.setString(1, year + "-" + month + "-" + day);
 
             ArrayList<String> orderNoList = new ArrayList<>();
             ArrayList<String> customerList = new ArrayList<>();
@@ -41,7 +37,7 @@ public class Database {
                 customerList.add(customer);
                 deliverToList.add(deliverTo);
             }
-
+            return new List[] {orderNoList, customerList};
 
         } catch(Exception e) {
             e.printStackTrace();

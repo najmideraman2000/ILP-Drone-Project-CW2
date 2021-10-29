@@ -1,5 +1,7 @@
 package uk.ac.ed.inf;
 
+import java.util.List;
+
 public class App {
 
     public static void main(String[] args) {
@@ -9,7 +11,8 @@ public class App {
         String serverPort = args[3];
         String databasePort = args[4];
 
-
+        Database newDatabase = new Database("localhost", databasePort);
+        List infoList = new List[];
 
     }
 }
