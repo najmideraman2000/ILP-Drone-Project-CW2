@@ -1,9 +1,15 @@
 package uk.ac.ed.inf;
 
-public class LongLat {
+import com.mapbox.geojson.*;
 
-    public double longitude;
-    public double latitude;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.mapbox.turf.TurfJoins;
+
+public class LongLat {
+    private double longitude;
+    private double latitude;
     public static final double MIN_LONGITUDE = -3.192473;
     public static final double MAX_LONGITUDE = -3.184319;
     public static final double MIN_LATITUDE = 55.942617;
@@ -18,6 +24,20 @@ public class LongLat {
     public LongLat(double longitude, double latitude){
         this.longitude = longitude;
         this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLongitude(double newLongitude) {
+        this.longitude = newLongitude;
+    }
+    public void  setLatitude(double newLatitude) {
+        this.latitude = newLatitude;
     }
 
     /**
@@ -37,8 +57,8 @@ public class LongLat {
      * @return the distance between both position in degree.
      */
     public double distanceTo(LongLat longLatObject) {
-        double secondLongitude = longLatObject.longitude;
-        double secondLatitude = longLatObject.latitude;
+        double secondLongitude = longLatObject.getLongitude();
+        double secondLatitude = longLatObject.getLatitude();
         // Calculate the distance using Pythagoras Theorem formula
         return Math.sqrt(Math.pow((longitude - secondLongitude), 2) + Math.pow((latitude - secondLatitude), 2));
     }
@@ -61,18 +81,94 @@ public class LongLat {
      * @param angle the angle at which the drone move.
      * @return new LongLat object which contains the new position of the drone.
      */
-    public LongLat nextPosition(int angle) {
-        double newLongitude;
-        double newLatitude;
-        // In the case where the drone is hovering, junk value of -999 is given.
-        if (angle == -999) {
-            newLongitude = longitude;
-            newLatitude = latitude;
+//    public LongLat nextPosition(int angle) {
+//        double newLongitude;
+//        double newLatitude;
+//        // In the case where the drone is hovering, junk value of -999 is given.
+//        if (angle == -999) {
+//            newLongitude = longitude;
+//            newLatitude = latitude;
+//        }
+//        else {
+//            newLongitude = longitude + (0.00015 * (Math.cos(Math.toRadians(angle))));
+//            newLatitude = latitude + (0.00015 * (Math.sin(Math.toRadians(angle))));
+//        }
+//        return new LongLat(newLongitude, newLatitude);
+//    }
+
+    /**
+     * Method to calculate the angle between two LongLat objects
+     * @param nextPosition next LongLat
+     * @return the angle between the two LongLat
+     */
+    public int getAngle(LongLat nextPosition) {
+        double x1 = longitude;
+        double y1 = latitude;
+        double x2 = nextPosition.getLongitude();
+        double y2 = nextPosition.getLatitude();
+
+        if (x2 > x1 && y2 > y1) {
+            int angle = (int) Math.round((Math.toDegrees(Math.atan((y2 - y1) / (x2 - x1)))) / 10.0) * 10;
+            return angle;
         }
-        else {
-            newLongitude = longitude + (0.00015 * (Math.cos(Math.toRadians(angle))));
-            newLatitude = latitude + (0.00015 * (Math.sin(Math.toRadians(angle))));
+        else if (x2 < x1 && y2 > y1) {
+            int angle = (int) Math.round((Math.toDegrees(Math.atan((y2 - y1) / (x1 - x2)))) / 10.0) * 10;
+            return 180 - angle;
         }
-        return new LongLat(newLongitude, newLatitude);
+        else if (x2 < x1 && y2 < y1) {
+            int angle = (int) Math.round((Math.toDegrees(Math.atan((y1 - y2) / (x1 - x2)))) / 10.0) * 10;
+            return 180 + angle;
+        }
+        else if (x2 > x1 && y2 < y1) {
+            int angle = (int) Math.round((Math.toDegrees(Math.atan((y1 - y2) / (x2 - x1)))) / 10.0) * 10;
+            return 360 - angle;
+        }
+        else if (x2 > x1 && y2 == y1) {
+            return 0;
+        }
+        else if (x2 == x1 && y2 > y1) {
+            return 90;
+        }
+        else if (x2 < x1 && y2 == y1) {
+            return 180;
+        }
+        else if (x2 == x1 && y2 < y1) {
+            return 270;
+        }
+        return 0;
     }
+
+    /**
+     * Method to check whether the LongLat is in the no-fly zone or not
+     * @param noFlyZones ArrayList of all Polygon objects of no-fly zones
+     * @return boolean true if the LongLat is in the zone. Return false otherwise
+     */
+    public boolean inFlyZones(ArrayList<Polygon> noFlyZones) {
+        Point coordinate = Point.fromLngLat(longitude, latitude);
+        for(Polygon noFlyZone : noFlyZones) {
+            if (TurfJoins.inside(coordinate, noFlyZone)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+//    public boolean closeToTwo(LongLat longLatObject) {
+//        double distance = distanceTo(longLatObject);
+//        return distance <= 0.00015;
+//    }
+
+//    public boolean closeToNoFlyZOnes(ArrayList<Polygon> noFlyZones) {
+//        for (Polygon noFlyZone : noFlyZones) {
+//            LineString outerLine = noFlyZone.outer();
+//            List<Point> lineCoordinate = outerLine.coordinates();
+//            for (Point lu : lineCoordinate) {
+//                LongLat noFLyLongLat = new LongLat(lu.longitude(), lu.latitude());
+//                if (this.closeToTwo(noFLyLongLat)) {
+//                    return true;
+//                }
+//            }
+//        }
+//        return false;
+//    }
 }
