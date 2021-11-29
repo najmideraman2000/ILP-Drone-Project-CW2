@@ -198,7 +198,7 @@ public class HelperMethods {
         double latEnd = destination.getLatitude();
 
         // Initialise new algorithm object to be used to find paths to destination
-        PathfindingAlgorithm algorithm = new PathfindingAlgorithm(map, longStart, latStart, false);
+        PathfindingAlgorithm algorithm = new PathfindingAlgorithm(map, longStart, latStart);
         List<PathfindingAlgorithm.Node> moveNodes = algorithm.findPathTo(longEnd, latEnd);
         return moveNodes;
     }
@@ -244,7 +244,7 @@ public class HelperMethods {
         double longEnd = appletonTower.getLongitude();
         double latEnd = appletonTower.getLatitude();
 
-        PathfindingAlgorithm newAStar = new PathfindingAlgorithm(map, longStart,latStart, false);
+        PathfindingAlgorithm newAStar = new PathfindingAlgorithm(map, longStart,latStart);
         List<PathfindingAlgorithm.Node> travelNodes = newAStar.findPathTo(longEnd, latEnd);
         return travelNodes.size();
     }

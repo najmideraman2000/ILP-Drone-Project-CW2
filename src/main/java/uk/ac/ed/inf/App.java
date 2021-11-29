@@ -15,7 +15,7 @@ public class App {
 //        String serverPort = args[3];
 //        String databasePort = args[4];
 
-        String day = "12";
+        String day = "27";
         String month = "12";
         String year = "2023";
         String serverPort = "80";
@@ -121,17 +121,17 @@ public class App {
 
                 // Loop through all move node (for travel from one place to another one)
                 for (PathfindingAlgorithm.Node moveNode : moveNodes) {
-                    Flightpath currentPath = HelperMethods.getFlightpath(entry.getKey(), drone, moveNode.x, moveNode.y);
+                    Flightpath currentPath = HelperMethods.getFlightpath(entry.getKey(), drone, moveNode.longitude, moveNode.latitude);
                     currentFlightpath.add(currentPath);
 
                     movesRequired += 1;
                     drone.setAvailableMoves(drone.getAvailableMoves() - 1);
-                    drone.setDroneLongLat(moveNode.x, moveNode.y);
-                    Point newPoint = Point.fromLngLat(moveNode.x, moveNode.y);
+                    drone.setDroneLongLat(moveNode.longitude, moveNode.latitude);
+                    Point newPoint = Point.fromLngLat(moveNode.longitude, moveNode.latitude);
                     pointList.add(newPoint);
 
                     if (drone.getDroneLongLat().closeTo(destination)) {
-                        Flightpath hover = HelperMethods.getFlightpathHover(entry.getKey(), moveNode.x, moveNode.y);
+                        Flightpath hover = HelperMethods.getFlightpathHover(entry.getKey(), moveNode.longitude, moveNode.latitude);
                         currentFlightpath.add(hover);
 
                         movesRequired += 1;
@@ -163,15 +163,15 @@ public class App {
 
                 // Find the path to appleton tower and update the database and point lists
                 for (PathfindingAlgorithm.Node moveNode : moveNodes) {
-                    Flightpath currentPath = HelperMethods.getFlightpath(entry.getKey(), drone, moveNode.x, moveNode.y);
+                    Flightpath currentPath = HelperMethods.getFlightpath(entry.getKey(), drone, moveNode.longitude, moveNode.latitude);
                     currentFlightpath.add(currentPath);
 
-                    drone.setDroneLongLat(moveNode.x, moveNode.y);
-                    Point newPoint = Point.fromLngLat(moveNode.x, moveNode.y);
+                    drone.setDroneLongLat(moveNode.longitude, moveNode.latitude);
+                    Point newPoint = Point.fromLngLat(moveNode.longitude, moveNode.latitude);
                     pointList.add(newPoint);
 
                     if (drone.getDroneLongLat().closeTo(appletonTower)) {
-                        Flightpath hover = HelperMethods.getFlightpathHover(entry.getKey(), moveNode.x, moveNode.y);
+                        Flightpath hover = HelperMethods.getFlightpathHover(entry.getKey(), moveNode.longitude, moveNode.latitude);
                         currentFlightpath.add(hover);
                         pointList.add(newPoint);
                         break;
@@ -194,15 +194,15 @@ public class App {
 
             assert moveNodes != null;
             for (PathfindingAlgorithm.Node moveNode : moveNodes) {
-                Flightpath currentPath = HelperMethods.getFlightpath("done", drone, moveNode.x, moveNode.y);
+                Flightpath currentPath = HelperMethods.getFlightpath("done", drone, moveNode.longitude, moveNode.latitude);
                 currentFlightpath.add(currentPath);
 
-                drone.setDroneLongLat(moveNode.x, moveNode.y);
-                Point newPoint = Point.fromLngLat(moveNode.x, moveNode.y);
+                drone.setDroneLongLat(moveNode.longitude, moveNode.latitude);
+                Point newPoint = Point.fromLngLat(moveNode.longitude, moveNode.latitude);
                 pointList.add(newPoint);
 
                 if (drone.getDroneLongLat().closeTo(appletonTower)) {
-                    Flightpath hover = HelperMethods.getFlightpathHover("done", moveNode.x, moveNode.y);
+                    Flightpath hover = HelperMethods.getFlightpathHover("done", moveNode.longitude, moveNode.latitude);
                     currentFlightpath.add(hover);
                     pointList.add(newPoint);
                     break;
@@ -221,6 +221,7 @@ public class App {
 
         // Flattened list of Point. Transform the list to a FeatureCollection object consist of only one LineString
         List<Point> flattenedPointLists = allPointList.stream().flatMap(List::stream).collect(Collectors.toList());
+        System.out.println(flattenedPointLists.size());
         LineString ls = LineString.fromLngLats(flattenedPointLists);
         Feature f = Feature.fromGeometry((Geometry)ls);
         FeatureCollection fc = FeatureCollection.fromFeature(f);

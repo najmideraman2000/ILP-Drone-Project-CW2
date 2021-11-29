@@ -4,15 +4,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class PathfindingAlgorithm {
-    private final List<Node> open;
-    private final List<Node> closed;
-    private final List<Node> path;
-    private final int[][] maze;
-    private Node now;
-    private final double xStart;
-    private final double yStart;
-    private double xEnd, yEnd;
-    private final boolean diagonal;
+    private final List<Node> openList;
+    private final List<Node> closedList;
+    private final List<Node> pathList;
+    private final int[][] map;
+    private Node currentNode;
+    private final double longStart;
+    private final double latStart;
+    private double longEnd, latEnd;
 
     public static final double MIN_LONGITUDE = -3.192473;
     public static final double MAX_LONGITUDE = -3.184319;
@@ -20,14 +19,14 @@ public class PathfindingAlgorithm {
     public static final double MAX_LATITUDE = 55.946233;
 
     static class Node implements Comparable {
-        public Node parent;
-        public double x, y;
+        public Node parentNode;
+        public double longitude, latitude;
         public double g;
         public double h;
-        Node(Node parent, double xPos, double yPos, double g, double h) {
-            this.parent = parent;
-            this.x = xPos;
-            this.y = yPos;
+        Node(Node parent, double longitude, double latitude, double g, double h) {
+            this.parentNode = parent;
+            this.longitude = longitude;
+            this.latitude = latitude;
             this.g = g;
             this.h = h;
         }
@@ -39,79 +38,65 @@ public class PathfindingAlgorithm {
         }
     }
 
-    public PathfindingAlgorithm(int[][] maze, double xStart, double yStart, boolean diagonal) {
-        this.open = new ArrayList<>();
-        this.closed = new ArrayList<>();
-        this.path = new ArrayList<>();
-        this.maze = maze;
-        this.now = new Node(null, xStart, yStart, 0, 0);
-        this.xStart = xStart;
-        this.yStart = yStart;
-        this.diagonal = diagonal;
+    public PathfindingAlgorithm(int[][] map, double longStart, double latStart) {
+        this.openList = new ArrayList<>();
+        this.closedList = new ArrayList<>();
+        this.pathList = new ArrayList<>();
+        this.map = map;
+        this.currentNode = new Node(null, longStart, latStart, 0, 0);
+        this.longStart = longStart;
+        this.latStart = latStart;
     }
 
-    public List<Node> findPathTo(double xEnd, double yEnd) {
-        this.xEnd = xEnd;
-        this.yEnd = yEnd;
-        this.closed.add(this.now);
+    public List<Node> findPathTo(double longEnd, double latEnd) {
+        this.longEnd = longEnd;
+        this.latEnd = latEnd;
+        this.closedList.add(this.currentNode);
         addNeighboursToOpenList();
-        while (!(HelperMethods.getLongLatFromDoubles(this.now.x, this.now.y).closeTo(HelperMethods.getLongLatFromDoubles(this.xEnd, this.yEnd)))) {
-            if (this.open.isEmpty()) { // Nothing to examine
+        while (!(HelperMethods.getLongLatFromDoubles(this.currentNode.longitude, this.currentNode.latitude).closeTo(HelperMethods.getLongLatFromDoubles(this.longEnd, this.latEnd)))) {
+            if (this.openList.isEmpty()) { // Nothing to examine
                 return null;
             }
-            this.now = this.open.get(0); // get first node (lowest f score)
-            this.open.remove(0); // remove it
-            this.closed.add(this.now); // and add to the closed
+            this.currentNode = this.openList.get(0); // get first node (lowest f score)
+            this.openList.remove(0); // remove it
+            this.closedList.add(this.currentNode); // and add to the closed
             addNeighboursToOpenList();
         }
-        this.path.add(0, this.now);
-        while (!(HelperMethods.getLongLatFromDoubles(this.now.x, this.now.y).closeTo(HelperMethods.getLongLatFromDoubles(this.xStart, this.yStart)))) {
-            this.now = this.now.parent;
-            this.path.add(0, this.now);
+        this.pathList.add(0, this.currentNode);
+        while (!(HelperMethods.getLongLatFromDoubles(this.currentNode.longitude, this.currentNode.latitude).closeTo(HelperMethods.getLongLatFromDoubles(this.longStart, this.latStart)))) {
+            this.currentNode = this.currentNode.parentNode;
+            this.pathList.add(0, this.currentNode);
         }
-        return this.path;
+        return this.pathList;
     }
 
-    private static boolean findNeighborInList(List<Node> array, Node node) {
-        return array.stream().anyMatch((n) -> (n.x == node.x && n.y == node.y));
+    private static boolean findNeighborInList(List<Node> nodeList, Node node) {
+        return nodeList.stream().anyMatch((n) -> (n.longitude == node.longitude && n.latitude == node.latitude));
     }
 
-    private double distance(double dx, double dy) {
-        if (this.diagonal) { // if diagonal movement is alloweed
-            return Math.hypot(this.now.x + dx - this.xEnd, this.now.y + dy - this.yEnd); // return hypothenuse
-        } else {
-            return Math.abs(this.now.x + dx - this.xEnd) + Math.abs(this.now.y + dy - this.yEnd); // else return "Manhattan distance"
-        }
+    private double distance(double oneMoveLong, double oneMoveLat) {
+        return Math.abs(this.currentNode.longitude + oneMoveLong - this.longEnd) + Math.abs(this.currentNode.latitude + oneMoveLat - this.latEnd);
     }
 
     private void addNeighboursToOpenList() {
         Node node;
-        for (double x = -0.00015; x <= 0.00015; x+=0.00015) {
-            for (double y = -0.00015; y <= 0.00015; y+=0.00015) {
-                if (!this.diagonal && x != 0 && y != 0) {
+        for (double moveLong = -0.00015; moveLong <= 0.00015; moveLong += 0.00015) {
+            for (double moveLat = -0.00015; moveLat <= 0.00015; moveLat += 0.00015) {
+                if (moveLong != 0 && moveLat != 0) {
                     continue; // skip if diagonal movement is not allowed
                 }
-                node = new Node(this.now, this.now.x + x, this.now.y + y, this.now.g, this.distance(x, y));
-                if ((x != 0 || y != 0) // not this.now
-                        && this.now.x + x >= MIN_LONGITUDE && this.now.x + x < MAX_LONGITUDE // check maze boundaries
-                        && this.now.y + y >= MIN_LATITUDE && this.now.y + y < MAX_LATITUDE
-                        && this.maze[(int) ((this.now.y + y - MIN_LATITUDE)/0.00015)][(int) ((this.now.x + x - MIN_LONGITUDE)/0.00015)] != -1
-//                        && this.maze[(int) ((this.now.y + y - MIN_LATITUDE)/0.00015)][(int) ((this.now.x + x - MIN_LONGITUDE)/0.00015)] != 100// check if square is walkable
-                        && !findNeighborInList(this.open, node) && !findNeighborInList(this.closed, node)) { // if not already done
-                    node.g = node.parent.g + 1.; // Horizontal/vertical cost = 1.0
-                    node.g += maze[(int) ((this.now.y + y - MIN_LATITUDE)/0.00015)][(int) ((this.now.x + x - MIN_LONGITUDE)/0.00015)]; // add movement cost for this square
-
-                    // diagonal cost = sqrt(hor_cost² + vert_cost²)
-                    // in this example the cost would be 12.2 instead of 11
-                        /*
-                        if (diag && x != 0 && y != 0) {
-                            node.g += .4;	// Diagonal movement cost = 1.4
-                        }
-                        */
-                    this.open.add(node);
+                node = new Node(this.currentNode, this.currentNode.longitude + moveLong, this.currentNode.latitude + moveLat, this.currentNode.g, this.distance(moveLong, moveLat));
+                if ((moveLong != 0 || moveLat != 0) // not this.now
+                        && this.currentNode.longitude + moveLong >= MIN_LONGITUDE && this.currentNode.longitude + moveLong < MAX_LONGITUDE // check maze boundaries
+                        && this.currentNode.latitude + moveLat >= MIN_LATITUDE && this.currentNode.latitude + moveLat < MAX_LATITUDE
+                        && this.map[(int) ((this.currentNode.latitude + moveLat - MIN_LATITUDE)/0.00015)][(int) ((this.currentNode.longitude + moveLong - MIN_LONGITUDE)/0.00015)] != -1
+                        && !findNeighborInList(this.openList, node) && !findNeighborInList(this.closedList, node)) { // if not already done
+                    node.g = node.parentNode.g + 1.; // Horizontal/vertical cost = 1.0
+                    node.g += map[(int) ((this.currentNode.latitude + moveLat - MIN_LATITUDE)/0.00015)][(int) ((this.currentNode.longitude + moveLong - MIN_LONGITUDE)/0.00015)]; // add movement cost for this square
+                    this.openList.add(node);
                 }
             }
         }
-        Collections.sort(this.open);
+        Collections.sort(this.openList);
     }
 }
